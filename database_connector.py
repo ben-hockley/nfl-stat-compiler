@@ -98,19 +98,19 @@ def _int_or_zero(v: Any) -> int:
 
 def _merge_completions(existing: Optional[str], incoming: Optional[str]) -> Optional[str]:
     """
-    Merge two completions-attempts strings by summing corresponding sides of the dash.
+    Merge two completions-attempts strings by summing corresponding sides of the slash.
     - Examples:
-        existing="10-15", incoming="5-8" -> "15-23"
-        existing="10-15", incoming="7"   -> "17-15"
-        existing=None, incoming="7-9"    -> "7-9"
+        existing="10/15", incoming="5/8" -> "15/23"
+        existing="10/15", incoming="7"   -> "17/15"
+        existing=None, incoming="7/9"    -> "7/9"
         existing="7", incoming="3"       -> "10"
     """
     def to_pair(s: Optional[str]) -> tuple[Optional[int], Optional[int]]:
         if s is None:
             return (None, None)
         s = str(s).strip()
-        if "-" in s:
-            parts = s.split("-", 1)
+        if "/" in s:
+            parts = s.split("/", 1)
             left = _to_int(parts[0])
             right = _to_int(parts[1])
             return (left, right)
@@ -130,11 +130,13 @@ def _merge_completions(existing: Optional[str], incoming: Optional[str]) -> Opti
 
     # Determine if we should produce a "left-right" form:
     # produce right side if any right exists in either value
+    # otherwise return single value (left only)
     if e_right is not None or i_right is not None:
         right_sum = (e_right or 0) + (i_right or 0)
-        return f"{left_sum}-{right_sum}"
-    # otherwise return single value (left only)
-    return str(left_sum)
+        return f"{left_sum}/{right_sum}"
+    else:
+        return str(left_sum)
+    
 
 def insert_passing_stats(passing_stats: Iterable[Any]) -> int:
     """
@@ -608,18 +610,3 @@ def wipe_all_stats_tables() -> None:
         raise
     finally:
         cur.close()
-
-
-if __name__ == "__main__":
-    # Quick smoke test (reads one value). Set DB_USER and DB_PASS in env when required.
-    try:
-        conn = get_connection()
-    except mariadb.Error as e:
-        print(f"Failed to connect to MariaDB: {e}")
-        raise
-
-    try:
-        rows = execute_query(database_connection, "SELECT DATABASE(), VERSION()", fetch=True)
-        print("Connected. Sample output:", rows)
-    finally:
-        database_connection.close()

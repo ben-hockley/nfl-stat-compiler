@@ -74,7 +74,7 @@ class PassingStats:
     player_id: Optional[int]
     player_name: Optional[str]
     player_headshot_url: Optional[str]
-    completions_attempts: Optional[str]            # composite "C-A" kept as string
+    completions_attempts: Optional[str]            # composite "C/A" kept as string
     passing_yards: Optional[int]
     passing_touchdowns: Optional[int]
     interceptions: Optional[int]
