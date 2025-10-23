@@ -1,6 +1,4 @@
 from config.config import DB_HOST, DB_NAME, DB_PASSWORD, DB_PORT, DB_USER
-
-import os
 from typing import Any, Iterable, List, Optional, Tuple
 import mariadb
 

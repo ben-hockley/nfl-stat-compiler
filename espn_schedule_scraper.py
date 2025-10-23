@@ -1,9 +1,8 @@
 import requests
 from bs4 import BeautifulSoup
 import json
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 from typing import Optional, List, Any
-import math
 from database_connector import insert_all_player_stats, wipe_all_stats_tables
 
 # URL of the page
