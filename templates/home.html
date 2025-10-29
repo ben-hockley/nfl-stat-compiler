@@ -14,6 +14,46 @@
     <div class="container py-3">
       <h1 class="mb-4">NFL Stats 2025</h1>
 
+      <!-- Team filter: select a team or All -->
+      <div class="mb-3">
+        <label for="teamFilter" class="form-label">Filter by team</label>
+        <select id="teamFilter" class="form-select form-select-sm" aria-label="Filter tables by team">
+          <option value="ALL">All teams</option>
+          <option value="ARI">Arizona Cardinals (ARI)</option>
+          <option value="ATL">Atlanta Falcons (ATL)</option>
+          <option value="BAL">Baltimore Ravens (BAL)</option>
+          <option value="BUF">Buffalo Bills (BUF)</option>
+          <option value="CAR">Carolina Panthers (CAR)</option>
+          <option value="CHI">Chicago Bears (CHI)</option>
+          <option value="CIN">Cincinnati Bengals (CIN)</option>
+          <option value="CLE">Cleveland Browns (CLE)</option>
+          <option value="DAL">Dallas Cowboys (DAL)</option>
+          <option value="DEN">Denver Broncos (DEN)</option>
+          <option value="DET">Detroit Lions (DET)</option>
+          <option value="GB">Green Bay Packers (GB)</option>
+          <option value="HOU">Houston Texans (HOU)</option>
+          <option value="IND">Indianapolis Colts (IND)</option>
+          <option value="JAX">Jacksonville Jaguars (JAX)</option>
+          <option value="KC">Kansas City Chiefs (KC)</option>
+          <option value="LAC">Los Angeles Chargers (LAC)</option>
+          <option value="LAR">Los Angeles Rams (LAR)</option>
+          <option value="LV">Las Vegas Raiders (LV)</option>
+          <option value="MIA">Miami Dolphins (MIA)</option>
+          <option value="MIN">Minnesota Vikings (MIN)</option>
+          <option value="NE">New England Patriots (NE)</option>
+          <option value="NO">New Orleans Saints (NO)</option>
+          <option value="NYG">New York Giants (NYG)</option>
+          <option value="NYJ">New York Jets (NYJ)</option>
+          <option value="PHI">Philadelphia Eagles (PHI)</option>
+          <option value="PIT">Pittsburgh Steelers (PIT)</option>
+          <option value="SEA">Seattle Seahawks (SEA)</option>
+          <option value="SF">San Francisco 49ers (SF)</option>
+          <option value="TB">Tampa Bay Buccaneers (TB)</option>
+          <option value="TEN">Tennessee Titans (TEN)</option>
+          <option value="WAS">Washington Commanders (WAS)</option>
+        </select>
+      </div>
+
       <div class="row g-3">
         <!-- Passing leaders -->
         <div class="col-md-6">
@@ -302,6 +342,7 @@
 
     <script>
       (function(){
+        // small helper: get visible text from a cell (supports .text-truncate inside player cell)
         function getCellText(cell){
           if(!cell) return '';
           const tg = cell.querySelector('.text-truncate');
@@ -309,24 +350,22 @@
         }
         function parseNumber(s){
           if(!s) return null;
-          // try to extract first numeric token (handles "1,234", "12/34", "12.3")
           const cleaned = s.replace(/\u2011/g,'-').replace(/[,()]/g,'');
           const m = cleaned.match(/-?\d+(\.\d+)?/);
           return m ? parseFloat(m[0]) : null;
         }
+
+        // Sorting: clicking any table header sorts that table's body
         document.querySelectorAll('table').forEach(table=>{
           const thead = table.querySelector('thead');
           const tbody = table.querySelector('tbody');
           if(!thead || !tbody) return;
           Array.from(thead.querySelectorAll('th')).forEach((th, colIdx)=>{
             th.addEventListener('click', ()=>{
-              // toggle order
               const current = th.dataset.order === 'asc' ? 'desc' : 'asc';
-              // clear indicators and orders
               thead.querySelectorAll('th').forEach(h=>{
                 h.dataset.order = '';
-                const si = h.querySelector('.sort-indicator');
-                if(si) si.textContent = '';
+                const si = h.querySelector('.sort-indicator'); if(si) si.textContent = '';
               });
               th.dataset.order = current;
               let indicator = th.querySelector('.sort-indicator');
@@ -344,11 +383,65 @@
                 }
                 return current === 'asc' ? aText.localeCompare(bText, undefined, {numeric:true}) : bText.localeCompare(aText, undefined, {numeric:true});
               });
-              // reattach rows in sorted order
               rows.forEach(r => tbody.appendChild(r));
             });
           });
         });
+
+        // Team filter: map abbreviations to full names (used to match either form in table's team cell)
+        const teamMap = {
+          ARI: 'Arizona Cardinals', ATL: 'Atlanta Falcons', BAL: 'Baltimore Ravens', BUF: 'Buffalo Bills',
+          CAR: 'Carolina Panthers', CHI: 'Chicago Bears', CIN: 'Cincinnati Bengals', CLE: 'Cleveland Browns',
+          DAL: 'Dallas Cowboys', DEN: 'Denver Broncos', DET: 'Detroit Lions', GB: 'Green Bay Packers',
+          HOU: 'Houston Texans', IND: 'Indianapolis Colts', JAX: 'Jacksonville Jaguars', KC: 'Kansas City Chiefs',
+          LAC: 'Los Angeles Chargers', LAR: 'Los Angeles Rams', LV: 'Las Vegas Raiders', MIA: 'Miami Dolphins',
+          MIN: 'Minnesota Vikings', NE: 'New England Patriots', NO: 'New Orleans Saints', NYG: 'New York Giants',
+          NYJ: 'New York Jets', PHI: 'Philadelphia Eagles', PIT: 'Pittsburgh Steelers', SEA: 'Seattle Seahawks',
+          SF: 'San Francisco 49ers', TB: 'Tampa Bay Buccaneers', TEN: 'Tennessee Titans', WAS: 'Washington Commanders'
+        };
+
+        function teamMatches(teamText, selected){
+          if(!selected || selected === 'ALL') return true;
+          if(!teamText) return false;
+          const t = teamText.trim().toUpperCase();
+          const sel = selected.toUpperCase();
+          if(t === sel) return true; // exact abbr
+          if(t.includes(sel)) return true; // e.g., cell contains 'NE' or abbreviation somewhere
+          const full = teamMap[sel];
+          if(full && t.includes(full.toUpperCase())) return true; // match full name
+          // also accept matches where cell is like 'New England (NE)'
+          if(full && t.includes(sel) ) return true;
+          return false;
+        }
+
+        function filterTablesByTeam(selected){
+          const tables = document.querySelectorAll('table');
+          tables.forEach(table=>{
+            const tbody = table.querySelector('tbody');
+            if(!tbody) return;
+            const rows = tbody.querySelectorAll('tr');
+            rows.forEach(row=>{
+              // assume team is in third column (td:nth-child(3)) across your tables
+              const teamCell = row.querySelector('td:nth-child(3)');
+              const teamText = teamCell ? teamCell.textContent : '';
+              if(teamMatches(teamText, selected)){
+                row.style.display = '';
+              } else {
+                row.style.display = 'none';
+              }
+            });
+          });
+        }
+
+        const filterEl = document.getElementById('teamFilter');
+        if(filterEl){
+          filterEl.addEventListener('change', (e)=>{
+            filterTablesByTeam(e.target.value);
+          });
+          // apply default filter on load (show all)
+          filterTablesByTeam(filterEl.value || 'ALL');
+        }
+
       })();
     </script>
 
