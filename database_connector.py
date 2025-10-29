@@ -610,3 +610,82 @@ def wipe_all_stats_tables() -> None:
         raise
     finally:
         cur.close()
+
+def get_passing_stats_top_n(n: int) -> List[Tuple]:
+    """
+    Return top N passing stats by passing_yards.
+    """
+    query = """
+    SELECT team_id, team_name, player_id, player_name, player_headshot_url,
+           completions_attempts, passing_yards, passing_touchdowns, interceptions, sacks
+    FROM passing_stats
+    ORDER BY passing_yards DESC
+    LIMIT %s
+    """
+    return execute_query(database_connection, query, (n,))
+
+def get_rushing_stats_top_n(n: int) -> List[Tuple]:
+    """
+    Return top N rushing stats by rushing_yards.
+    """
+    query = """
+    SELECT team_id, team_name, player_id, player_name, player_headshot_url,
+           rushing_attempts, rushing_yards, rushing_touchdowns, longest_run
+    FROM rushing_stats
+    ORDER BY rushing_yards DESC
+    LIMIT %s
+    """
+    return execute_query(database_connection, query, (n,))
+
+def get_receiving_stats_top_n(n: int) -> List[Tuple]:
+    """
+    Return top N receiving stats by receiving_yards.
+    """
+    query = """
+    SELECT team_id, team_name, player_id, player_name, player_headshot_url,
+           receptions, receiving_yards, receiving_touchdowns, longest_reception, targets
+    FROM receiving_stats
+    ORDER BY receiving_yards DESC
+    LIMIT %s
+    """
+    return execute_query(database_connection, query, (n,))
+
+def get_defensive_stats_top_n(n: int) -> List[Tuple]:
+    """
+    Return top N defensive stats by total_tackles.
+    """
+    query = """
+    SELECT team_id, team_name, player_id, player_name, player_headshot_url,
+           total_tackles, solo_tackles, sacks, tackles_for_loss,
+           passes_defended, qb_hits, defensive_touchdowns
+    FROM defensive_stats
+    ORDER BY total_tackles DESC
+    LIMIT %s
+    """
+    return execute_query(database_connection, query, (n,))
+
+def get_interceptions_stats_top_n(n: int) -> List[Tuple]:
+    """
+    Return top N interceptions stats by interceptions.
+    """
+    query = """
+    SELECT team_id, team_name, player_id, player_name, player_headshot_url,
+           interceptions, interception_yards, interception_touchdowns
+    FROM interceptions_stats
+    ORDER BY interceptions DESC
+    LIMIT %s
+    """
+    return execute_query(database_connection, query, (n,))
+
+def get_fumbles_stats_top_n(n: int) -> List[Tuple]:
+    """
+    Return top N fumbles stats by fumbles.
+    """
+    query = """
+    SELECT team_id, team_name, player_id, player_name, player_headshot_url,
+           fumbles, fumbles_lost, fumbles_recovered
+    FROM fumbles_stats
+    ORDER BY fumbles DESC
+    LIMIT %s
+    """
+    return execute_query(database_connection, query, (n,))

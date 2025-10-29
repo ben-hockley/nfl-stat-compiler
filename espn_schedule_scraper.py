@@ -444,4 +444,4 @@ def compile_season_stats(season: int, end_week: int, season_type: int):
 
 
 # Example usage:
-compile_season_stats(season=2025, end_week=2, season_type=2)  # Regular Season
+#compile_season_stats(season=2025, end_week=2, season_type=2)  # Regular Season
